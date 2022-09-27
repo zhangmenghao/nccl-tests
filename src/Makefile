@@ -83,16 +83,12 @@ build: ${BIN_FILES}
 clean:
 	rm -rf ${DST_DIR}
 
-TEST_VERIFIABLE_SRCDIR := ../verifiable
-TEST_VERIFIABLE_BUILDDIR := $(BUILDDIR)/verifiable
-include ../verifiable/verifiable.mk
-
-${DST_DIR}/%.o: %.cu common.h $(TEST_VERIFIABLE_HDRS)
+${DST_DIR}/%.o: %.cu common.h
 	@printf "Compiling  %-35s > %s\n" $< $@
 	@mkdir -p ${DST_DIR}
 	$(NVCC) -o $@ $(NVCUFLAGS) -c $<
 
-${DST_DIR}/%_perf:${DST_DIR}/%.o ${DST_DIR}/common.o $(TEST_VERIFIABLE_OBJS)
+${DST_DIR}/%_perf:${DST_DIR}/%.o ${DST_DIR}/common.o
 	@printf "Linking  %-35s > %s\n" $< $@
 	@mkdir -p ${DST_DIR}
 	$(NVCC) -o $@ $(NVCUFLAGS) $^ ${NVLDFLAGS}
