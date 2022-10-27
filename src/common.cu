@@ -68,6 +68,7 @@ static int blocking_coll = 0;
 static int cudaGraphLaunches = 0;
 // Report average iteration time: (0=RANK0,1=AVG,2=MIN,3=MAX)
 static int average = 1;
+static int sleep_period = 0;
 
 #define NUM_BLOCKS 32
 
@@ -617,12 +618,22 @@ testResult_t BenchTime(struct threadArgs* args, ncclDataType_t type, ncclRedOp_t
 
   // Performance Benchmark
   auto start = std::chrono::high_resolution_clock::now();
+  double deltaSec = 0;
   for (int iter = 0; iter < iters; iter++) {
+    if (sleep_period > 0){
+      Barrier(args);
+      start = std::chrono::high_resolution_clock::now();
+    }
     if (agg_iters>1) NCCLCHECK(ncclGroupStart());
     for (int aiter = 0; aiter < agg_iters; aiter++) {
       TESTCHECK(startColl(args, type, op, root, in_place, iter*agg_iters+aiter));
     }
     if (agg_iters>1) NCCLCHECK(ncclGroupEnd());
+    if (sleep_period > 0){
+      TESTCHECK(completeColl(args));
+      deltaSec += std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start).count();
+      usleep(sleep_period*1000);
+    }
   }
 
 #if CUDART_VERSION >= 11030
@@ -645,11 +656,11 @@ testResult_t BenchTime(struct threadArgs* args, ncclDataType_t type, ncclRedOp_t
     }
   }
 #endif
+  if (sleep_period == 0 || cudaGraphLaunches >= 1){
+    TESTCHECK(completeColl(args));
+    deltaSec += std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start).count();
+  }
 
-  TESTCHECK(completeColl(args));
-
-  auto delta = std::chrono::high_resolution_clock::now() - start;
-  double deltaSec = std::chrono::duration_cast<std::chrono::duration<double>>(delta).count();
   deltaSec = deltaSec/(iters*agg_iters);
   if (cudaGraphLaunches >= 1) deltaSec = deltaSec/cudaGraphLaunches;
   Allreduce(args, &deltaSec, average);
@@ -777,7 +788,9 @@ testResult_t TimeTest(struct threadArgs* args, ncclDataType_t type, const char* 
       setupArgs(size, type, args);
       print_line_header(max(args->sendBytes, args->expectedBytes), args->nbytes / wordSize(type), typeName, opName, root);
       TESTCHECK(BenchTime(args, type, op, root, 0));
+      usleep(1000*1000);
       TESTCHECK(BenchTime(args, type, op, root, 1));
+      usleep(3000*1000);
       PRINT("\n");
   }
   return testSuccess;
@@ -882,13 +895,14 @@ int main(int argc, char* argv[]) {
     {"blocking", required_argument, 0, 'z'},
     {"cudagraph", required_argument, 0, 'G'},
     {"average", required_argument, 0, 'a'},
+    {"sleep_period", required_argument, 0, 's'},
     {"help", no_argument, 0, 'h'},
     {}
   };
 
   while(1) {
     int c;
-    c = getopt_long(argc, argv, "t:g:b:e:i:f:n:m:w:p:c:o:d:r:z:hG:a:", longopts, &longindex);
+    c = getopt_long(argc, argv, "t:g:b:e:i:f:n:m:w:p:c:o:d:r:z:hG:a:s:", longopts, &longindex);
 
     if (c == -1)
       break;
@@ -963,6 +977,9 @@ int main(int argc, char* argv[]) {
       case 'a':
         average = (int)strtol(optarg, NULL, 0);
         break;
+      case 's':
+        sleep_period = (int)strtol(optarg, NULL, 0);
+        break;
       case 'h':
       default:
         if (c != 'h') printf("invalid option '%c'\n", c);
@@ -990,6 +1007,7 @@ int main(int argc, char* argv[]) {
             "[-z,--blocking <0/1>] \n\t"
             "[-G,--cudagraph <num graph launches>] \n\t"
             "[-a,--average <0/1/2/3> report average iteration time <0=RANK0/1=AVG/2=MIN/3=MAX>] \n\t"
+            "[-s,--sleep_period <sleep period>] \n\t"
             "[-h,--help]\n",
 	    basename(argv[0]));
 	return 0;
