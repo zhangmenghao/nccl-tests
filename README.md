@@ -71,5 +71,4 @@ All tests support the same set of arguments :
 
 ## Copyright
 
-NCCL tests are provided under the BSD license. All source code and accompanying documentation is copyright (c) 2016-2021, NVIDIA CORPORATION. All rights reserved.
-
+NCCL tests are provided under the BSD license.
