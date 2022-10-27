@@ -12,7 +12,7 @@ void print_header() {
   PRINT("# %10s  %12s  %8s  %7s  %6s  %6s  %5s  %7s  %6s  %6s  %5s\n", "size", "count", "type",
         "time", "algbw", "busbw", "error", "time", "algbw", "busbw", "error");
   PRINT("# %10s  %12s  %8s  %7s  %6s  %6s  %5s  %7s  %6s  %6s  %5s\n", "(B)", "(elements)", "",
-        "(us)", "(GB/s)", "(GB/s)", "", "(us)", "(GB/s)", "(GB/s)", "");
+        "(us)", "(GB/s)", "(Gb/s)", "", "(us)", "(GB/s)", "(Gb/s)", "");
 }
 
 void print_line_header (size_t size, size_t count, const char *typeName, const char *opName, int root) {
@@ -53,7 +53,7 @@ void SendRecvGetBw(size_t count, int typesize, double sec, double* algBw, double
 
   *algBw = baseBw;
   double factor = 1;
-  *busBw = baseBw * factor;
+  *busBw = baseBw * factor * 8;
 }
 
 testResult_t SendRecvRunColl(void* sendbuff, void* recvbuff, size_t count, ncclDataType_t type, ncclRedOp_t op, int root, ncclComm_t comm, cudaStream_t stream) {
