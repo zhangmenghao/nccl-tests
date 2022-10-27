@@ -1,6 +1,8 @@
-# NCCL Tests
+# Kuaishou NCCL Tests
 
-These tests check both the performance and the correctness of [NCCL](http://github.com/nvidia/nccl) operations.
+Compare with the original [nccl-tests](https://github.com/NVIDIA/nccl-tests), Kuaishou nccl-tests has two significant improvements: 
+* Kuaishou nccl-tests supports periodic RDMA traffic generation, with a special support for argument`-s`, while the original nccl-tests only support persistent RDMA traffic generation.
+* Kuaishou nccl-tests support bandwidth display (i.e., `busbw`) in the format of `Gbps`, instead of `GBps` like the origin nccl-tests.
 
 ## Build
 
@@ -60,6 +62,7 @@ All tests support the same set of arguments :
   * `-w,--warmup_iters <warmup iteration count>` number of warmup iterations (not timed). Default : 5.
   * `-m,--agg_iters <aggregation count>` number of operations to aggregate together in each iteration. Default : 1.
   * `-a,--average <0/1/2/3>` Report performance as an average across all ranks (MPI=1 only). <0=Rank0,1=Avg,2=Min,3=Max>. Default : 1.
+  * `-s,--sleep_time <sleep time>` sleep time after each iteration to mock computation time in machine learning training. Default : 0.
 * Test operation
   * `-p,--parallel_init <0/1>` use threads to initialize NCCL in parallel. Default : 0.
   * `-c,--check <0/1>` check correctness of results. This can be quite slow on large numbers of GPUs. Default : 1.
