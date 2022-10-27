@@ -2,7 +2,7 @@
 
 Compare with the original [nccl-tests](https://github.com/NVIDIA/nccl-tests), nccl-tests+ has two significant improvements: 
 * nccl-tests+ supports periodic RDMA traffic generation, with a special support for argument`-s`, while the original nccl-tests only support persistent RDMA traffic generation.
-* nccl-tests+ support bandwidth display (i.e., `busbw`) in the format of `Gbps`, instead of `GBps` like the origin nccl-tests.
+* nccl-tests+ supports bandwidth display (i.e., `busbw`) in the format of `Gbps`, instead of `GBps` like the origin nccl-tests.
 
 ## Build
 
