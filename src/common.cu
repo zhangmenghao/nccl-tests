@@ -788,9 +788,9 @@ testResult_t TimeTest(struct threadArgs* args, ncclDataType_t type, const char* 
       setupArgs(size, type, args);
       print_line_header(max(args->sendBytes, args->expectedBytes), args->nbytes / wordSize(type), typeName, opName, root);
       TESTCHECK(BenchTime(args, type, op, root, 0));
-      usleep(1000*1000);
+      if (sleep_period > 0) usleep(sleep_period*1000);
       TESTCHECK(BenchTime(args, type, op, root, 1));
-      usleep(3000*1000);
+      if (sleep_period > 0) usleep(sleep_period*1000);
       PRINT("\n");
   }
   return testSuccess;
